@@ -4,6 +4,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 const cors = require('cors');
 const { query } = require('express');
+var jwt = require('jsonwebtoken');
 
 require('dotenv').config()
 
@@ -23,7 +24,7 @@ async function run() {
 
     try {
         app.get('/volunteer', async (req, res) => {
-          
+
             const query = {};
             const cursor = volunteerCollection.find(query);
             const volunteer = await cursor.toArray();
@@ -37,7 +38,7 @@ async function run() {
         })
 
         app.get('/newVolunteer', async (req, res) => {
-            
+
             const query = {};
             const cursor = newVolunteer.find(query);
             const volunteer = await cursor.toArray();
@@ -49,6 +50,13 @@ async function run() {
             const collectedVolunteer = await volunteerCollection.findOne(query);
             res.send(collectedVolunteer)
         })
+        // login 
+        app.post('/login', async (req, res) => {
+            const email = req.body;
+            const token = jwt.sign(email, process.env.ACCESS_TOKEN);
+            res.send({ token })
+        })
+        // login 
 
         app.post('/volunteer', async (req, res) => {
             const volunteerDetail = req.body;
@@ -64,7 +72,10 @@ async function run() {
         })
 
 
-        app.post('/addVolunteer',async(req,res)=>{
+        app.post('/addVolunteer', async (req, res) => {
+            const token = req.headers.authorization;
+            const [email,accessToken] = token.split(' ')
+            console.log(accessToken)
             const addDetail = req.body;
             console.log(addDetail)
             const addedVolunteer = await volunteerCollection.insertOne(addDetail);
